@@ -1,0 +1,28 @@
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Backend
+backend/venv/
+__pycache__/
+*.py[cod]
+*$py.class
+backend/.env
+backend/.pytest_cache/
+
+# Otofarma App Specific Data (Do NOT commit customer files or vector databases)
+backend/data/
+backend/storage/
+
+# Temporary test scripts
+test_*.py
