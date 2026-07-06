@@ -6,6 +6,14 @@ from .settings import get_settings
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 INDEX_DIR_BASE = os.path.join(os.path.dirname(__file__), '..', 'storage')
 
+_cached_index = None
+_cached_provider = None
+
+def clear_cache():
+    global _cached_index, _cached_provider
+    _cached_index = None
+    _cached_provider = None
+
 def _configure_llm():
     settings = get_settings()
     
@@ -44,10 +52,16 @@ def _configure_llm():
         # We'll use a small fast model by default for local setups
         Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
-def get_index():
+def get_index(force_rebuild=False):
+    global _cached_index, _cached_provider
+    settings = get_settings()
+    
+    # Return cached index if we haven't changed providers and aren't forcing a rebuild
+    if not force_rebuild and _cached_index is not None and _cached_provider == settings.provider:
+        return _cached_index
+
     _configure_llm()
     
-    settings = get_settings()
     INDEX_DIR = os.path.join(INDEX_DIR_BASE, settings.provider)
     os.makedirs(INDEX_DIR, exist_ok=True)
     
@@ -77,6 +91,9 @@ def get_index():
     
     # Persist the vector index to disk (in the storage folder)
     index.storage_context.persist(persist_dir=INDEX_DIR)
+    
+    _cached_index = index
+    _cached_provider = settings.provider
     return index
 
 def get_chat_engine(document_ids=None):

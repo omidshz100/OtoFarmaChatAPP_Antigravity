@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .settings import get_settings, save_settings, LLMSettings
-from .engine import get_chat_engine, DATA_DIR, INDEX_DIR_BASE
+from .engine import get_chat_engine, clear_cache, DATA_DIR, INDEX_DIR_BASE
 
 app = FastAPI()
 
@@ -30,6 +30,7 @@ def api_get_settings():
 @app.post("/api/settings")
 def api_save_settings(settings: LLMSettings):
     save_settings(settings)
+    clear_cache()
     return {"status": "success"}
 
 @app.post("/api/upload")
@@ -42,6 +43,7 @@ async def upload_file(file: UploadFile = File(...)):
         
     if os.path.exists(INDEX_DIR_BASE):
         shutil.rmtree(INDEX_DIR_BASE)
+        clear_cache()
         
     return {"filename": file.filename, "status": "uploaded"}
 
@@ -60,6 +62,7 @@ def delete_file(filename: str):
         os.remove(file_path)
         if os.path.exists(INDEX_DIR_BASE):
             shutil.rmtree(INDEX_DIR_BASE)
+            clear_cache()
         return {"status": "deleted"}
     raise HTTPException(status_code=404, detail="File not found")
 
@@ -67,8 +70,9 @@ def delete_file(filename: str):
 async def process_documents():
     try:
         from .engine import get_index
+        clear_cache()
         # This forces the index to rebuild if it was deleted during upload
-        get_index()
+        get_index(force_rebuild=True)
         return {"status": "processed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
