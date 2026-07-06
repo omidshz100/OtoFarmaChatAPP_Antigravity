@@ -19,6 +19,7 @@ __pycache__/
 *$py.class
 backend/.env
 backend/.pytest_cache/
+backend/config/settings.json
 
 # Otofarma App Specific Data (Do NOT commit customer files or vector databases)
 backend/data/
